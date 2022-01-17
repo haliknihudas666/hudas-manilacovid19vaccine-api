@@ -18,14 +18,16 @@ router.get(
             return res.status(400).send({ 'error': errors.array() });
         }
 
-        const login = await axios({
-            method: 'get',
-            url: `https://www.manilacovid19vaccine.ph/search-otp-ajax.php?MobileNo=${req.query.mobile_number}&FirstName=${req.query.first_name}`,
-        })
-        var registrationID = login.data.split('!')[1]
-        var referenceID = login.data.split('!')[2]
-
         try {
+            const login = await axios({
+                method: 'get',
+                url: `https://www.manilacovid19vaccine.ph/search-otp-ajax.php?MobileNo=${req.query.mobile_number}&FirstName=${req.query.first_name}`,
+            })
+            console.log(login.headers)
+            console.log(login.status)
+            var registrationID = login.data.split('!')[1]
+            var referenceID = login.data.split('!')[2]
+
             var dataZipped = await getData(registrationID, referenceID)
             if (dataZipped) {
                 return res.setHeader('content-type', 'application/zip').send(dataZipped);
