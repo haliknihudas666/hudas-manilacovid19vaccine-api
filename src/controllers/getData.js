@@ -25,14 +25,16 @@ router.get(
         var registrationID = login.data.split('!')[1]
         var referenceID = login.data.split('!')[2]
 
-        var dataZipped = await getData(registrationID, referenceID)
-        if (dataZipped) {
-            return res.setHeader('content-type', 'application/zip').send(dataZipped);
-        } else {
-            return res.status(500).send({ message: 'Downloading failed' });
+        try {
+            var dataZipped = await getData(registrationID, referenceID)
+            if (dataZipped) {
+                return res.setHeader('content-type', 'application/zip').send(dataZipped);
+            } else {
+                return res.status(500).send({ message: 'Downloading failed' });
+            }
+        } catch (err) {
+            return res.status(500).send({ message: 'Something went wrong', error: err });
         }
-
-
     });
 
 async function getData(registrationID, referenceID) {
