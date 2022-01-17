@@ -1,1 +1,1 @@
-kkokkopop-controller
+hudas-manilacovid19vaccine-api
