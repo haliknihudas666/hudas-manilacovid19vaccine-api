@@ -18,15 +18,11 @@ router.get(
             return res.status(400).send({ 'error': errors.array() });
         }
 
-        const login = await axios({
-            method: 'get',
-            url: `https://www.manilacovid19vaccine.ph/search-otp-ajax.php?MobileNo=${req.query.mobile_number}&FirstName=${req.query.first_name}`,
-        })
-        console.log(login.headers)
-        console.log(login.status)
-
         try {
-
+            const login = await axios({
+                method: 'get',
+                url: `https://www.manilacovid19vaccine.ph/search-otp-ajax.php?MobileNo=${req.query.mobile_number}&FirstName=${req.query.first_name}`,
+            })
             var registrationID = login.data.split('!')[1]
             var referenceID = login.data.split('!')[2]
 
@@ -100,7 +96,7 @@ async function getData(registrationID, referenceID) {
                 cookie: verify.headers['set-cookie']
             }
         }));
-        console.log(chalk.green('DOWNLOADED Vaccination Certificate OF ' + referenceID))
+        console.log(chalk.green('DOWNLOADED Vaccination Certificate OF ' + referenceID + '\n'))
 
         const getFamily = await axios({
             method: 'get',
@@ -122,7 +118,7 @@ async function getData(registrationID, referenceID) {
             if (famReferenceID != referenceID) {
                 if (!fs.existsSync(process.cwd() + `/documents/${referenceID}/family/`)) {
                     fs.mkdirSync(process.cwd() + `/documents/${referenceID}/family/`);
-                    console.log(chalk.green(`Created '/documents/${referenceID}/family/' Folder\n`))
+                    console.log(chalk.green(`Created '/documents/${referenceID}/family/' Folder`))
                 }
 
                 if (!fs.existsSync(process.cwd() + `/documents/${referenceID}/family/${famReferenceID}/`)) {
