@@ -2,9 +2,7 @@ const { query, validationResult } = require('express-validator');
 const axios = require('axios').default;
 const express = require('express')
 const router = express.Router()
-const fs = require('fs');
 const Zip = require('node-zip');
-const zip = new Zip;
 const chalk = require('chalk');
 const download = require('download');
 
@@ -23,6 +21,7 @@ router.get(
                 method: 'get',
                 url: `https://www.manilacovid19vaccine.ph/search-otp-ajax.php?MobileNo=${req.query.mobile_number}&FirstName=${req.query.first_name}`,
             })
+
             var registrationID = login.data.split('!')[1]
             var referenceID = login.data.split('!')[2]
 
@@ -30,7 +29,7 @@ router.get(
             if (dataZipped) {
                 return res.setHeader('content-type', 'application/zip').send(dataZipped);
             } else {
-                return res.status(500).send({ message: 'Downloading failed' });
+                return res.status(404).send({ message: 'User not found.' });
             }
         } catch (err) {
             return res.status(500).send({ message: 'Something went wrong', error: err });
@@ -38,12 +37,8 @@ router.get(
     });
 
 async function getData(registrationID, referenceID) {
+    const zip = new Zip;
     var options = { base64: false, compression: 'DEFLATE' };
-
-    if (!fs.existsSync(process.cwd() + `/documents/`)) {
-        fs.mkdirSync(process.cwd() + `/documents/`);
-        console.log(chalk.green('Created Documents Folder\n'))
-    }
 
     const verify = await axios({
         method: 'get',
@@ -67,15 +62,8 @@ async function getData(registrationID, referenceID) {
     }
 
     if (!getCert.data.includes('<script>')) {
-        if (!fs.existsSync(process.cwd() + `/documents/${referenceID}/`)) {
-            fs.mkdirSync(process.cwd() + `/documents/${referenceID}/`);
-            console.log(chalk.green(`Created '/documents/${referenceID}/' Folder\n`))
-        }
-
         zip.file(`documents/${referenceID}/waiver.pdf`, await download(`https://www.manilacovid19vaccine.ph/waiver.php?RegistrationID=${registrationID}&ReferenceID=${referenceID}`));
         console.log(chalk.green('DOWNLOADED Waiver OF ' + referenceID))
-
-
 
         zip.file(`documents/${referenceID}/passport-vaccination-id.pdf`, await download(`https://www.manilacovid19vaccine.ph/my-passport-vaccination-id.php?RegistrationID=${registrationID}&ReferenceID=${referenceID}`, '', {
             headers: {
@@ -116,16 +104,6 @@ async function getData(registrationID, referenceID) {
         for (const element of familyMembers) {
             var famReferenceID = element.split('?')[1].split('&')[1].replace('ReferenceID=', '');
             if (famReferenceID != referenceID) {
-                if (!fs.existsSync(process.cwd() + `/documents/${referenceID}/family/`)) {
-                    fs.mkdirSync(process.cwd() + `/documents/${referenceID}/family/`);
-                    console.log(chalk.green(`Created '/documents/${referenceID}/family/' Folder`))
-                }
-
-                if (!fs.existsSync(process.cwd() + `/documents/${referenceID}/family/${famReferenceID}/`)) {
-                    fs.mkdirSync(process.cwd() + `/documents/${referenceID}/family/${famReferenceID}/`);
-                    console.log(chalk.green(`Created '/documents/${referenceID}/family/${famReferenceID}/' Folder\n`))
-                }
-
                 var fileName;
 
                 if (element.includes('my-passport-family-members-waiver-registration.php')) {
